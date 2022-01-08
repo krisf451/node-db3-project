@@ -1,10 +1,11 @@
-const e = require("express");
 const db = require("../../data/db-config");
 
 const checkSchemeId = async (req, res, next) => {
   try {
     const { scheme_id } = req.params;
-    const possibleId = await db("schemes").where("scheme_id", scheme_id);
+    const possibleId = await db("schemes")
+      .where("scheme_id", scheme_id)
+      .first();
     if (possibleId) {
       next();
     } else {
@@ -23,10 +24,12 @@ const validateScheme = (req, res, next) => {
     const { scheme_name } = req.body;
     if (
       scheme_name === undefined ||
-      scheme_name === "" ||
-      typeof scheme_name !== "string"
+      typeof scheme_name !== "string" ||
+      !scheme_name.trim()
     ) {
-      next({ status: 400, message: "invalid schem_name" });
+      next({ status: 400, message: "invalid scheme_name" });
+    } else {
+      next();
     }
   } catch (err) {
     next(err);
@@ -38,12 +41,14 @@ const validateStep = (req, res, next) => {
     const { instructions, step_number } = req.body;
     if (
       instructions === undefined ||
-      instructions === "" ||
       typeof instructions !== "string" ||
+      !instructions.trim() ||
       step_number < 1 ||
       Number.isInteger(step_number) === false
     ) {
       next({ status: 400, message: "invalid step" });
+    } else {
+      next();
     }
   } catch (err) {
     next(err);
