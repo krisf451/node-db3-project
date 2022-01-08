@@ -25,7 +25,7 @@ function find() {
     .orderBy("sc.scheme_id");
 }
 
-function findById(scheme_id) {
+async function findById(scheme_id) {
   // EXERCISE B
   /*
     1B- Study the SQL query below running it in SQLite Studio against `data/schemes.db3`:
@@ -91,7 +91,36 @@ function findById(scheme_id) {
         "scheme_name": "Have Fun!",
         "steps": []
       }
+
+       SELECT
+          sc.scheme_name,
+          st.*
+      FROM schemes as sc
+      LEFT JOIN steps as st
+          ON sc.scheme_id = st.scheme_id
+      WHERE sc.scheme_id = 1
+      ORDER BY st.step_number ASC;
   */
+  let rows = await db("schemes as sc")
+    .leftJoin("steps as st", "sc.scheme_id", "st.scheme_id")
+    .where("sc.scheme_id", scheme_id)
+    .select("sc.scheme_name", "sc.scheme_id as sc_id", "st.*")
+    .orderBy("st.step_number");
+
+  console.log(rows);
+
+  let steps = await db("steps")
+    .where("scheme_id", scheme_id)
+    .select("step_id", "step_number", "instructions")
+    .orderBy("step_number");
+
+  let result = {
+    scheme_id: rows[0].scheme_id ? rows[0].scheme_id : rows[0].sc_id,
+    scheme_name: rows[0].scheme_name,
+    steps: rows[0].step_id ? [...steps] : [],
+  };
+
+  return result;
 }
 
 function findSteps(scheme_id) {
